@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.1.7//EN"
+    "http://struts.apache.org/dtds/struts-2.1.7.dtd">
+
+<struts>
+
+	<!-- 封装公共的配置信息，让多个包可以复用 -->
+	<package name="common" extends="json-default">
+		<interceptors>
+			<!-- 注册拦截器 -->
+			<interceptor name="checkLogin" 
+				class="com.tarena.interceptor.CheckLoginInterceptor"/>
+			<interceptor name="openInView" 
+				class="com.tarena.interceptor.OpenSessionInViewInterceptor.java"/>
+			<!-- 注册拦截器栈 -->
+			<interceptor-stack name="loginStack">
+				<interceptor-ref name="checkLogin"/>
+				<interceptor-ref name="openInView"/>
+				<interceptor-ref name="defaultStack"/>
+			</interceptor-stack>
+		</interceptors>
+		<!-- 设置当前包下所有Action默认引用的拦截器 -->
+		<default-interceptor-ref name="loginStack"/>
+		<!-- 注册公用的result，相当于当前包下
+			所有的action都定义了这些result -->
+		<global-results>
+			<result name="login" 
+				type="redirectAction">
+				<param name="namespace">
+					/login
+				</param>
+				<param name="actionName">
+					toLogin
+				</param>
+			</result>
+		</global-results>
+	</package>
+
+	<!-- 资费模块 -->
+	<package name="cost" 
+		namespace="/cost" 
+		extends="common">
+		<!-- 
+			资费查询
+			method属性可以省略，当省略时Struts2
+			会自动调用execute方法。
+		-->
+		<action name="findCost" 
+			class="com.tarena.action.FindCostAction">
+			<result name="success">
+				/WEB-INF/cost/cost_list.jsp
+			</result>
+		</action>
+		<!-- 删除一条资费 -->
+		<action name="deleteCost"
+			class="com.tarena.action.DeleteCostAction"
+			method="delete">
+			<result name="success"
+				type="redirectAction">
+				findCost
+			</result>
+		</action>
+		<!-- 打开新增页面 -->
+		<action name="toAddCost">
+			<result name="success">
+				/WEB-INF/cost/add_cost.jsp
+			</result>
+		</action>
+		<!-- 校验资费名称 -->
+		<action name="checkCostName"
+			class="com.tarena.action.CheckCostNameAction">
+			<result name="success" type="json">
+				<param name="root">
+					info
+				</param>
+			</result>
+		</action>
+		<!-- 打开修改页面 -->
+		<action name="toUpdateCost"
+			class="com.tarena.action.ToUpdateCostAction">
+			<result name="success">
+				/WEB-INF/cost/update_cost.jsp
+			</result>
+		</action>
+	</package>
+	
+	<!-- 登录模块 -->
+	<package name="login" 
+		namespace="/login" 
+		extends="struts-default">
+		<!-- 
+			打开登录页面。
+			class属性可以省略，当省略时Struts2
+			自动调用ActionSupport，该类中有execute
+			方法，并且返回了success。
+		-->
+		<action name="toLogin">
+			<result name="success">
+				/WEB-INF/main/login.jsp
+			</result>
+		</action>
+		<!-- 登录验证 -->
+		<action name="checkLogin"
+			class="com.tarena.action.CheckLoginAction">
+			<result name="success">
+				/WEB-INF/main/index.jsp
+			</result>
+			<result name="fail">
+				/WEB-INF/main/login.jsp
+			</result>
+		</action>
+		<!-- 生成验证码图片 -->
+		<action name="createImage"
+			class="com.tarena.action.CreateImageAction">
+			<result name="success" type="stream">
+				<param name="inputName">
+					imageStream
+				</param>
+			</result>
+		</action>
+	</package>
+
+</struts>
